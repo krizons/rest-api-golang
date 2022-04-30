@@ -1,4 +1,4 @@
-module rest
+module github.com/krizons/rest-api-golang
 
 go 1.17
 

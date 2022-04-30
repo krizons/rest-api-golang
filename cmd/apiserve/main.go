@@ -3,7 +3,7 @@ package main
 import (
 	"log"
 
-	"rest/internal/apiserver"
+	"github.com/krizons/rest-api-golang/internal/apiserver"
 
 	"github.com/BurntSushi/toml"
 )

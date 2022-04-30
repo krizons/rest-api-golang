@@ -11,7 +11,7 @@ type MyDb struct {
 
 func New(url string) (*MyDb, error) {
 	db, err := gorm.Open(sqlite.Open(url))
-	db.Migrator(&User{})
+	db.AutoMigrate(&User{})
 	if err != nil {
 		return nil, err
 	}
