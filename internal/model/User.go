@@ -2,6 +2,6 @@ package model
 
 type User struct {
 	Name    string
-	Age     int8
+	Age     uint8
 	Country string
 }

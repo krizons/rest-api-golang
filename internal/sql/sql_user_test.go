@@ -49,8 +49,42 @@ func TestRange(t *testing.T) {
 	range_out, err := sql_user.Range(test_db, 18, 30)
 	assert.NoError(err)
 	for _, person := range range_out {
-		assert.LessOrEqual(int8(18), person.Age)
-		assert.GreaterOrEqual(int8(30), person.Age)
+		assert.LessOrEqual(uint8(18), person.Age)
+		assert.GreaterOrEqual(uint8(30), person.Age)
 
 	}
+}
+func TestOrder(t *testing.T) {
+	assert := assert.New(t)
+	test_db, err := sql_user.New("tmp.db")
+	assert.NoError(err)
+	range_out, err := sql_user.Order(test_db, "Age", "desc")
+	assert.NoError(err)
+	var tmp uint8 = 255
+	for _, person := range range_out {
+		assert.GreaterOrEqual(tmp, person.Age)
+		tmp = person.Age
+
+	}
+	range_out, err = sql_user.Order(test_db, "Age", "ASC")
+	assert.NoError(err)
+	tmp = 0
+	for _, person := range range_out {
+		assert.LessOrEqual(tmp, person.Age)
+		tmp = person.Age
+
+	}
+}
+func TestTextFins(t *testing.T) {
+	assert := assert.New(t)
+	test_db, err := sql_user.New("tmp.db")
+	assert.NoError(err)
+	range_out, err := sql_user.TextSearch(test_db, "Margie")
+	assert.NoError(err)
+
+	for _, person := range range_out {
+		assert.Contains(person.Name, "Margie")
+
+	}
+
 }
