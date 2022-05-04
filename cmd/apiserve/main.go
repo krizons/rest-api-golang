@@ -3,9 +3,8 @@ package main
 import (
 	"log"
 
-	"github.com/krizons/rest-api-golang/internal/apiserver"
-
 	"github.com/BurntSushi/toml"
+	"github.com/krizons/rest-api-golang/internal/apiserver"
 )
 
 func main() {
@@ -14,4 +13,13 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+	s := apiserver.New()
+	if err := s.Start(); err != nil {
+		log.Fatal(err)
+	}
+	/*config := apiserver.NewConfig()
+	_, err := toml.DecodeFile("./config/config.toml", config)
+	if err != nil {
+		log.Fatal(err)
+	}*/
 }

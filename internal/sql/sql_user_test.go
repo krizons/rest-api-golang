@@ -10,7 +10,7 @@ import (
 
 func TestCreateGetSelect(t *testing.T) {
 	assert := assert.New(t)
-	test_db, err := sql_user.New("tmp.db")
+	test_db, err := sql_user.New(&sql_user.Config{DatabaseURL: "db_test.db"})
 	assert.NoError(err)
 	sql_user.Create(test_db, model.User{Name: "Margie Ellison", Age: 18, Country: "UK"})
 	sql_user.Create(test_db, model.User{Name: "Gordon Felix", Age: 20, Country: "US"})
@@ -29,7 +29,7 @@ func TestCreateGetSelect(t *testing.T) {
 }
 func TestFindParam(t *testing.T) {
 	assert := assert.New(t)
-	test_db, err := sql_user.New("tmp.db")
+	test_db, err := sql_user.New(&sql_user.Config{DatabaseURL: "db_test.db"})
 	assert.NoError(err)
 	filter_out, err := sql_user.Filter(test_db, model.User{Country: "AT"})
 	assert.NoError(err)
@@ -44,7 +44,7 @@ func TestFindParam(t *testing.T) {
 }
 func TestRange(t *testing.T) {
 	assert := assert.New(t)
-	test_db, err := sql_user.New("tmp.db")
+	test_db, err := sql_user.New(&sql_user.Config{DatabaseURL: "db_test.db"})
 	assert.NoError(err)
 	range_out, err := sql_user.Range(test_db, 18, 30)
 	assert.NoError(err)
@@ -56,7 +56,7 @@ func TestRange(t *testing.T) {
 }
 func TestOrder(t *testing.T) {
 	assert := assert.New(t)
-	test_db, err := sql_user.New("tmp.db")
+	test_db, err := sql_user.New(&sql_user.Config{DatabaseURL: "db_test.db"})
 	assert.NoError(err)
 	range_out, err := sql_user.Order(test_db, "Age", "desc")
 	assert.NoError(err)
@@ -77,7 +77,7 @@ func TestOrder(t *testing.T) {
 }
 func TestTextFins(t *testing.T) {
 	assert := assert.New(t)
-	test_db, err := sql_user.New("tmp.db")
+	test_db, err := sql_user.New(&sql_user.Config{DatabaseURL: "db_test.db"})
 	assert.NoError(err)
 	range_out, err := sql_user.TextSearch(test_db, "Margie")
 	assert.NoError(err)
