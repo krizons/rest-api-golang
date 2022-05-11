@@ -2,10 +2,11 @@ package apiserver
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
+	"strconv"
 
 	"github.com/gorilla/mux"
+	"github.com/krizons/rest-api-golang/internal/model"
 	sql_user "github.com/krizons/rest-api-golang/internal/sql"
 )
 
@@ -28,21 +29,110 @@ func (s *server) userHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		users, err := sql_user.GetAll(s.db)
 		if err != nil {
-			fmt.Fprint(w, http.StatusBadRequest)
+			w.WriteHeader(http.StatusBadRequest)
 			return
 		}
 		data, err := json.Marshal(users)
 		if err != nil {
-			fmt.Fprint(w, http.StatusBadRequest)
+			w.WriteHeader(http.StatusBadRequest)
 			return
 		}
-		fmt.Fprint(w, data)
-		//json_out =: json.ma
+		w.Header().Set("Content-Type", "application/json")
+		w.Write(data)
 	}
 }
+func (s *server) FilterHandler() http.HandlerFunc {
 
-func (s *server) configureRouter() {
-	s.router.HandleFunc("/users/all", s.userHandler())
+	return func(w http.ResponseWriter, r *http.Request) {
+		vars := mux.Vars(r)
+		var user []model.User
+		var err error
+		switch vars["colum"] {
+		case "name":
+
+			user, err = sql_user.Filter(s.db, model.User{Name: vars["value"]})
+			if err != nil {
+				w.WriteHeader(http.StatusBadRequest)
+				return
+			}
+
+		case "country":
+
+			user, err = sql_user.Filter(s.db, model.User{Country: vars["value"]})
+			if err != nil {
+				w.WriteHeader(http.StatusBadRequest)
+				return
+			}
+		case "age":
+			i, err := strconv.Atoi(vars["value"])
+			if err != nil {
+				w.WriteHeader(http.StatusBadRequest)
+				return
+			}
+			user, err = sql_user.Filter(s.db, model.User{Age: uint8(i)})
+			if err != nil {
+				w.WriteHeader(http.StatusBadRequest)
+				return
+			}
+		default:
+			w.WriteHeader(http.StatusUnprocessableEntity)
+			return
+		}
+		err = json.NewEncoder(w).Encode(user)
+		if err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+	}
+}
+func (s *server) SortedHandler() http.HandlerFunc {
+
+	return func(w http.ResponseWriter, r *http.Request) {
+		vars := mux.Vars(r)
+		users, err := sql_user.Order(s.db, vars["colum"], vars["trend"])
+		if err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+		err = json.NewEncoder(w).Encode(users)
+		if err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+	}
+}
+func (s *server) SearchHandler() http.HandlerFunc {
+
+	return func(w http.ResponseWriter, r *http.Request) {
+		vars := mux.Vars(r)
+		users, err := sql_user.TextSearch(s.db, vars["name"])
+		if err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+		err = json.NewEncoder(w).Encode(users)
+		if err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+	}
+}
+func (s *server) configureRouter() error {
+
+	if err := s.router.HandleFunc("/users/all", s.userHandler()).Methods("GET").GetError(); err != nil {
+		return err
+	}
+	if err := s.router.HandleFunc("/users/filter/{colum:(?:age|name|country)}/{value}", s.FilterHandler()).Methods("GET").GetError(); err != nil {
+		return err
+	}
+	if err := s.router.HandleFunc("/users/sorted/{colum:(?:age|name|country)}/{trend:(?:asc|desc)}", s.SortedHandler()).Methods("GET").GetError(); err != nil {
+		return err
+	}
+	if err := s.router.HandleFunc("/users/search/{name}", s.SearchHandler()).Methods("GET").GetError(); err != nil {
+		return err
+	}
+
+	return nil
 }
 func (s *server) Start() error {
 	s.configureRouter()
