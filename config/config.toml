@@ -1,3 +1,2 @@
-bind_addr = ":8080"
-[sql]
+bind_addr = ":8181"
 database_url = "../../db_test.db"

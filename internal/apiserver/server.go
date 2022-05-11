@@ -7,7 +7,7 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/krizons/rest-api-golang/internal/model"
-	sql_user "github.com/krizons/rest-api-golang/internal/sql"
+	sql_user "github.com/krizons/rest-api-golang/internal/sql/sqllite"
 )
 
 type server struct {

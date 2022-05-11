@@ -1,4 +1,4 @@
-package sql_user
+package sqlite_user
 
 import (
 	"github.com/krizons/rest-api-golang/internal/model"
