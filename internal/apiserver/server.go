@@ -8,12 +8,13 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/krizons/rest-api-golang/internal/model"
 	"github.com/krizons/rest-api-golang/internal/user_db"
+	sql_user "github.com/krizons/rest-api-golang/internal/user_db/sqllite"
 )
 
 type server struct {
 	config *Config
 	router *mux.Router
-	db     *user_db.UserDB
+	db     user_db.UserDB
 }
 
 func New(config *Config) *server {
