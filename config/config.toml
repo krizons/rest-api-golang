@@ -1,4 +1,3 @@
 bind_addr = ":8080"
-log_level = "debug"
 [sql]
-database_url = "db_test.db"
+database_url = "../../db_test.db"

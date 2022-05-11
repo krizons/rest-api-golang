@@ -9,14 +9,14 @@ import (
 
 func main() {
 	config := apiserver.NewConfig()
-	_, err := toml.DecodeFile("./config/config.toml", config)
+	_, err := toml.DecodeFile("../../config/config.toml", config)
 	if err != nil {
 		log.Fatal(err)
 	}
-	/*s := apiserver.New()
+	s := apiserver.New(config)
 	if err := s.Start(); err != nil {
 		log.Fatal(err)
-	}*/
+	}
 	/*config := apiserver.NewConfig()
 	_, err := toml.DecodeFile("./config/config.toml", config)
 	if err != nil {

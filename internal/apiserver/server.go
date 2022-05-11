@@ -143,7 +143,7 @@ func (s *server) Start() error {
 	return http.ListenAndServe(s.config.BindAddr, s.router)
 }
 func (s *server) configureDB() error {
-	db, error := sql_user.New(s.config.DB)
+	db, error := sql_user.New(s.config.DatabaseURL)
 	if error != nil {
 		return error
 	}

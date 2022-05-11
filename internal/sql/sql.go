@@ -7,17 +7,17 @@ import (
 )
 
 type MyDb struct {
-	Db     *gorm.DB
-	config *Config
+	Db          *gorm.DB
+	DatabaseURL string
 }
 
-func New(config *Config) (*MyDb, error) {
-	db, err := gorm.Open(sqlite.Open(config.DatabaseURL))
+func New(path string) (*MyDb, error) {
+	db, err := gorm.Open(sqlite.Open(path))
 
 	db.AutoMigrate(&model.User{})
 	if err != nil {
 		return nil, err
 	}
 
-	return &MyDb{Db: db, config: config}, nil
+	return &MyDb{Db: db, DatabaseURL: path}, nil
 }

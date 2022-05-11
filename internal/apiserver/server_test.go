@@ -10,13 +10,12 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/krizons/rest-api-golang/internal/model"
-	sql_user "github.com/krizons/rest-api-golang/internal/sql"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestUser_handle(t *testing.T) {
 	assert := assert.New(t)
-	s := New(&Config{DB: &sql_user.Config{DatabaseURL: "../../db_test.db"}})
+	s := New(&Config{DatabaseURL: "../../db_test.db"})
 	err := s.configureDB()
 	assert.NoError(err)
 	s.configureRouter()
@@ -33,7 +32,7 @@ func TestUser_handle(t *testing.T) {
 }
 func TestFilter_handle(t *testing.T) {
 	assert := assert.New(t)
-	s := New(&Config{DB: &sql_user.Config{DatabaseURL: "../../db_test.db"}})
+	s := New(&Config{DatabaseURL: "../../db_test.db"})
 	err := s.configureDB()
 	assert.NoError(err)
 	s.configureRouter()
@@ -100,7 +99,7 @@ func TestFilter_handle(t *testing.T) {
 }
 func TestSorted_handle(t *testing.T) {
 	assert := assert.New(t)
-	s := New(&Config{DB: &sql_user.Config{DatabaseURL: "../../db_test.db"}})
+	s := New(&Config{DatabaseURL: "../../db_test.db"})
 	err := s.configureDB()
 	assert.NoError(err)
 	err = s.configureRouter()
@@ -155,7 +154,7 @@ func TestSorted_handle(t *testing.T) {
 }
 func TestSearch_handle(t *testing.T) {
 	assert := assert.New(t)
-	s := New(&Config{DB: &sql_user.Config{DatabaseURL: "../../db_test.db"}})
+	s := New(&Config{DatabaseURL: "../../db_test.db"})
 	err := s.configureDB()
 	assert.NoError(err)
 	err = s.configureRouter()

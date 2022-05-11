@@ -1,15 +1,13 @@
 package apiserver
 
-import sql_user "github.com/krizons/rest-api-golang/internal/sql"
-
 type Config struct {
-	BindAddr string `toml:"bind_addr"`
-	DB       *sql_user.Config
+	BindAddr    string `toml:"bind_addr"`
+	DatabaseURL string `toml:"database_url"`
 }
 
 func NewConfig() *Config {
 	return &Config{
-		BindAddr: ":8080",
-		DB:       sql_user.NewConfig(),
+		BindAddr:    ":8080",
+		DatabaseURL: "",
 	}
 }
