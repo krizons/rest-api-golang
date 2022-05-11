@@ -27,7 +27,7 @@ func (s *server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 func (s *server) userHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		users, err := sql_user.GetAll(s.db)
+		users, err := s.db.GetAll()
 		if err != nil {
 			w.WriteHeader(http.StatusBadRequest)
 			return
@@ -50,7 +50,7 @@ func (s *server) FilterHandler() http.HandlerFunc {
 		switch vars["colum"] {
 		case "name":
 
-			user, err = sql_user.Filter(s.db, model.User{Name: vars["value"]})
+			user, err = s.db.Filter(model.User{Name: vars["value"]})
 			if err != nil {
 				w.WriteHeader(http.StatusBadRequest)
 				return
@@ -58,7 +58,7 @@ func (s *server) FilterHandler() http.HandlerFunc {
 
 		case "country":
 
-			user, err = sql_user.Filter(s.db, model.User{Country: vars["value"]})
+			user, err = s.db.Filter(model.User{Country: vars["value"]})
 			if err != nil {
 				w.WriteHeader(http.StatusBadRequest)
 				return
@@ -69,7 +69,7 @@ func (s *server) FilterHandler() http.HandlerFunc {
 				w.WriteHeader(http.StatusBadRequest)
 				return
 			}
-			user, err = sql_user.Filter(s.db, model.User{Age: uint8(i)})
+			user, err = s.db.Filter(model.User{Age: uint8(i)})
 			if err != nil {
 				w.WriteHeader(http.StatusBadRequest)
 				return
@@ -89,7 +89,7 @@ func (s *server) SortedHandler() http.HandlerFunc {
 
 	return func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
-		users, err := sql_user.Order(s.db, vars["colum"], vars["trend"])
+		users, err := s.db.Order(vars["colum"], vars["trend"])
 		if err != nil {
 			w.WriteHeader(http.StatusBadRequest)
 			return
@@ -105,7 +105,7 @@ func (s *server) SearchHandler() http.HandlerFunc {
 
 	return func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
-		users, err := sql_user.TextSearch(s.db, vars["name"])
+		users, err := s.db.TextSearch(vars["name"])
 		if err != nil {
 			w.WriteHeader(http.StatusBadRequest)
 			return
