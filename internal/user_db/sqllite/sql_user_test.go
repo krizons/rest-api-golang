@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"github.com/krizons/rest-api-golang/internal/model"
-	sql_user "github.com/krizons/rest-api-golang/internal/sql/sqllite"
+	sql_user "github.com/krizons/rest-api-golang/internal/user_db/sqllite"
 	"github.com/stretchr/testify/assert"
 )
 

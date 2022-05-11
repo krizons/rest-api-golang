@@ -6,12 +6,12 @@ import (
 	"gorm.io/gorm"
 )
 
-type MyDb struct {
+type UserDB struct {
 	Db          *gorm.DB
 	DatabaseURL string
 }
 
-func New(path string) (*MyDb, error) {
+func New(path string) (*UserDB, error) {
 	db, err := gorm.Open(sqlite.Open(path))
 
 	db.AutoMigrate(&model.User{})
@@ -19,5 +19,5 @@ func New(path string) (*MyDb, error) {
 		return nil, err
 	}
 
-	return &MyDb{Db: db, DatabaseURL: path}, nil
+	return &UserDB{Db: db, DatabaseURL: path}, nil
 }
