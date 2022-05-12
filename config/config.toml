@@ -1,2 +1,2 @@
 bind_addr = ":8181"
-database_url = "../../db_test.db"
+database_url = "root@tcp(127.0.0.1:3306)/rest-api"
