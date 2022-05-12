@@ -1,4 +1,4 @@
-package user_db
+package db
 
 import "github.com/krizons/rest-api-golang/internal/model"
 

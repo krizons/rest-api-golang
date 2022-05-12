@@ -1,13 +1,18 @@
 package mysql_user
 
 import (
+	"database/sql"
 	"fmt"
 	"strings"
 
 	"github.com/krizons/rest-api-golang/internal/model"
 )
 
-func (db *Db) GetAll() ([]model.User, error) {
+type UserDB struct {
+	Db *sql.DB
+}
+
+func (db *UserDB) GetAll() ([]model.User, error) {
 	var users []model.User
 	results, err := db.Db.Query("SELECT name,age,country FROM users")
 	if err != nil {
@@ -27,17 +32,16 @@ func (db *Db) GetAll() ([]model.User, error) {
 	return users, nil
 }
 
-func (db *Db) Create(user model.User) error {
+func (db *UserDB) Create(user model.User) {
 	insert, err := db.Db.Query("INSERT INTO users( name,age,country ) VALUES ( ?, ?, ? )", user.Name, user.Age, user.Country)
 	if err != nil {
-		return err
+		return
 	}
 	insert.Close()
-	return nil
 	//db.Db.Create(&user)
 
 }
-func (db *Db) Filter(user_filtr model.User) ([]model.User, error) {
+func (db *UserDB) Filter(user_filtr model.User) ([]model.User, error) {
 	var users []model.User
 	var qtext string = ""
 	if user_filtr.Age != 0 {
@@ -70,7 +74,7 @@ func (db *Db) Filter(user_filtr model.User) ([]model.User, error) {
 	return users, nil
 
 }
-func (db *Db) Range(age_start int, end_age int) ([]model.User, error) {
+func (db *UserDB) Range(age_start int, end_age int) ([]model.User, error) {
 	var users []model.User
 	results, err := db.Db.Query("SELECT name,age,country FROM users WHERE age >= ? and age <= ?", age_start, end_age)
 
@@ -91,7 +95,7 @@ func (db *Db) Range(age_start int, end_age int) ([]model.User, error) {
 	return users, nil
 
 }
-func (db *Db) Order(field string, sorting string) ([]model.User, error) {
+func (db *UserDB) Order(field string, sorting string) ([]model.User, error) {
 	//ORDER BY city DESC
 	var users []model.User
 	qtext := fmt.Sprintf("SELECT name,age,country FROM users ORDER BY %s %s", field, sorting)
@@ -115,7 +119,7 @@ func (db *Db) Order(field string, sorting string) ([]model.User, error) {
 	/*res := db.Db.Order(field + " " + sorting).Find(&users)
 	return users, res.Error*/
 }
-func (db *Db) TextSearch(search string) ([]model.User, error) {
+func (db *UserDB) TextSearch(search string) ([]model.User, error) {
 	var users []model.User
 	var out_user []model.User
 	results, err := db.Db.Query("SELECT name,age,country FROM users")
@@ -141,10 +145,11 @@ func (db *Db) TextSearch(search string) ([]model.User, error) {
 	}
 	return out_user, nil
 }
-func (db *Db) CreateTable() {
+
+/*func (db *UserDB) CreateTable() {
 	insert, _ := db.Db.Query("CREATE TABLE `rest-api`.`users` ( `id` INT NOT NULL AUTO_INCREMENT , `name` TEXT NOT NULL , `age` INT NOT NULL , `country` TEXT NOT NULL , PRIMARY KEY (`id`)) ENGINE = InnoDB;")
 	if insert != nil {
 		insert.Close()
 	}
 
-}
+}*/

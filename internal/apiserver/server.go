@@ -6,15 +6,15 @@ import (
 	"strconv"
 
 	"github.com/gorilla/mux"
+	"github.com/krizons/rest-api-golang/internal/db"
 	"github.com/krizons/rest-api-golang/internal/model"
-	"github.com/krizons/rest-api-golang/internal/user_db"
 	sql_user "github.com/krizons/rest-api-golang/internal/user_db/sqllite"
 )
 
 type server struct {
 	config *Config
 	router *mux.Router
-	db     user_db.UserDB
+	db     db.MyDb
 }
 
 func New(config *Config) *server {
@@ -28,7 +28,7 @@ func (s *server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 func (s *server) userHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		users, err := s.db.GetAll()
+		users, err := s.db.User().GetAll()
 		if err != nil {
 			w.WriteHeader(http.StatusBadRequest)
 			return
@@ -51,7 +51,7 @@ func (s *server) FilterHandler() http.HandlerFunc {
 		switch vars["colum"] {
 		case "name":
 
-			user, err = s.db.Filter(model.User{Name: vars["value"]})
+			user, err = s.db.User().Filter(model.User{Name: vars["value"]})
 			if err != nil {
 				w.WriteHeader(http.StatusBadRequest)
 				return
@@ -59,7 +59,7 @@ func (s *server) FilterHandler() http.HandlerFunc {
 
 		case "country":
 
-			user, err = s.db.Filter(model.User{Country: vars["value"]})
+			user, err = s.db.User().Filter(model.User{Country: vars["value"]})
 			if err != nil {
 				w.WriteHeader(http.StatusBadRequest)
 				return
@@ -70,7 +70,7 @@ func (s *server) FilterHandler() http.HandlerFunc {
 				w.WriteHeader(http.StatusBadRequest)
 				return
 			}
-			user, err = s.db.Filter(model.User{Age: uint8(i)})
+			user, err = s.db.User().Filter(model.User{Age: uint8(i)})
 			if err != nil {
 				w.WriteHeader(http.StatusBadRequest)
 				return
@@ -90,7 +90,7 @@ func (s *server) SortedHandler() http.HandlerFunc {
 
 	return func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
-		users, err := s.db.Order(vars["colum"], vars["trend"])
+		users, err := s.db.User().Order(vars["colum"], vars["trend"])
 		if err != nil {
 			w.WriteHeader(http.StatusBadRequest)
 			return
@@ -106,7 +106,7 @@ func (s *server) SearchHandler() http.HandlerFunc {
 
 	return func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
-		users, err := s.db.TextSearch(vars["name"])
+		users, err := s.db.User().TextSearch(vars["name"])
 		if err != nil {
 			w.WriteHeader(http.StatusBadRequest)
 			return
