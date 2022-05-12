@@ -29,6 +29,15 @@ func TestUser_handle(t *testing.T) {
 	assert.NotEqual(len(users), 0)
 	assert.NoError(err)
 
+	rec = httptest.NewRecorder()
+	req, _ = http.NewRequest(http.MethodGet, "/orders/all", b)
+	s.ServeHTTP(rec, req)
+	assert.NotEqual(http.StatusBadRequest, rec.Code)
+	var order []model.Order
+	err = json.Unmarshal(rec.Body.Bytes(), &order)
+	assert.NotEqual(len(order), 0)
+	assert.NoError(err)
+
 }
 func TestFilter_handle(t *testing.T) {
 	assert := assert.New(t)

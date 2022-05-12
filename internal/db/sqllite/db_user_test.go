@@ -1,4 +1,4 @@
-package sqlite_user_test
+package sqlite_test
 
 import (
 	"testing"

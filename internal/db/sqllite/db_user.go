@@ -1,4 +1,4 @@
-package sqlite_user
+package sqlite
 
 import (
 	"strings"
