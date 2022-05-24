@@ -1,14 +1,13 @@
 package apiserver
 
 import (
-	"bytes"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
-	"regexp"
 	"testing"
 
-	"github.com/gorilla/mux"
+	"github.com/gorilla/securecookie"
 	"github.com/krizons/rest-api-golang/internal/model"
 	"github.com/stretchr/testify/assert"
 )
@@ -19,18 +18,21 @@ func TestUser_handle(t *testing.T) {
 	err := s.configureDB()
 	assert.NoError(err)
 	s.configureRouter()
-	b := &bytes.Buffer{}
+
+	sc := securecookie.New(key, nil)
+	cookieStr, _ := sc.Encode(sessionName, map[interface{}]interface{}{"authenticated": true})
+
 	rec := httptest.NewRecorder()
-	req, _ := http.NewRequest(http.MethodGet, "/users/all", b)
+	req, _ := http.NewRequest(http.MethodGet, "/users/all", nil)
+	req.Header.Set("Cookie", fmt.Sprintf("%s=%s", sessionName, cookieStr))
 	s.ServeHTTP(rec, req)
 	assert.NotEqual(http.StatusBadRequest, rec.Code)
 	var users []model.User
 	err = json.Unmarshal(rec.Body.Bytes(), &users)
 	assert.NotEqual(len(users), 0)
 	assert.NoError(err)
-
 	rec = httptest.NewRecorder()
-	req, _ = http.NewRequest(http.MethodGet, "/orders/all", b)
+	req.URL.Path = "/orders/all"
 	s.ServeHTTP(rec, req)
 	assert.NotEqual(http.StatusBadRequest, rec.Code)
 	var order []model.Order
@@ -45,6 +47,10 @@ func TestFilter_handle(t *testing.T) {
 	err := s.configureDB()
 	assert.NoError(err)
 	s.configureRouter()
+	sc := securecookie.New(key, nil)
+	cookieStr, _ := sc.Encode(sessionName, map[interface{}]interface{}{"authenticated": true})
+	req, _ := http.NewRequest(http.MethodGet, "", nil)
+	req.Header.Set("Cookie", fmt.Sprintf("%s=%s", sessionName, cookieStr))
 	test_case_done := []struct {
 		colum string
 		value string
@@ -53,7 +59,7 @@ func TestFilter_handle(t *testing.T) {
 		{colum: "age", value: "20"}, {colum: "age", value: "18"}, {colum: "age", value: "45"}}
 	for _, val := range test_case_done {
 		rec := httptest.NewRecorder()
-		req, _ := http.NewRequest(http.MethodGet, "/users/filter/"+val.colum+"/"+val.value, nil)
+		req.URL.Path = "/users/filter/" + val.colum + "/" + val.value
 		s.ServeHTTP(rec, req)
 		assert.NotEqual(http.StatusBadRequest, rec.Code)
 		var users []model.User
@@ -69,7 +75,7 @@ func TestFilter_handle(t *testing.T) {
 		{colum: "age", value: "200"}}
 	for _, val := range test_case_zero {
 		rec := httptest.NewRecorder()
-		req, _ := http.NewRequest(http.MethodGet, "/users/filter/"+val.colum+"/"+val.value, nil)
+		req.URL.Path = "/users/filter/" + val.colum + "/" + val.value
 		s.ServeHTTP(rec, req)
 		assert.NotEqual(http.StatusBadRequest, rec.Code)
 		var users []model.User
@@ -83,7 +89,7 @@ func TestFilter_handle(t *testing.T) {
 	}{{colum: "age", value: "TEST"}}
 	for _, val := range test_case_bad {
 		rec := httptest.NewRecorder()
-		req, _ := http.NewRequest(http.MethodGet, "/users/filter/"+val.colum+"/"+val.value, nil)
+		req.URL.Path = "/users/filter/" + val.colum + "/" + val.value
 		s.ServeHTTP(rec, req)
 		assert.NotEqual(http.StatusOK, rec.Code)
 		var users []model.User
@@ -97,7 +103,7 @@ func TestFilter_handle(t *testing.T) {
 	}{{colum: "names", value: "TEST"}}
 	for _, val := range test_case_not_found {
 		rec := httptest.NewRecorder()
-		req, _ := http.NewRequest(http.MethodGet, "/users/filter/"+val.colum+"/"+val.value, nil)
+		req.URL.Path = "/users/filter/" + val.colum + "/" + val.value
 		s.ServeHTTP(rec, req)
 		assert.Equal(http.StatusNotFound, rec.Code)
 		var users []model.User
@@ -113,13 +119,17 @@ func TestSorted_handle(t *testing.T) {
 	assert.NoError(err)
 	err = s.configureRouter()
 	assert.NoError(err)
+	sc := securecookie.New(key, nil)
+	cookieStr, _ := sc.Encode(sessionName, map[interface{}]interface{}{"authenticated": true})
+	req, _ := http.NewRequest(http.MethodGet, "", nil)
+	req.Header.Set("Cookie", fmt.Sprintf("%s=%s", sessionName, cookieStr))
 	test_case_done := []struct {
 		colum string
 		trend string
 	}{{colum: "age", trend: "asc"}, {colum: "age", trend: "desc"}}
 	for _, val := range test_case_done {
 		rec := httptest.NewRecorder()
-		req, _ := http.NewRequest(http.MethodGet, "/users/sorted/"+val.colum+"/"+val.trend, nil)
+		req.URL.Path = "/users/sorted/" + val.colum + "/" + val.trend
 		s.ServeHTTP(rec, req)
 		assert.Equal(http.StatusOK, rec.Code)
 		var users []model.User
@@ -151,7 +161,7 @@ func TestSorted_handle(t *testing.T) {
 		{colum: "ege", trend: "dess"}, {colum: "age", trend: "aesc"}}
 	for _, val := range test_case_bad {
 		rec := httptest.NewRecorder()
-		req, _ := http.NewRequest(http.MethodGet, "/users/sorted/"+val.colum+"/"+val.trend, nil)
+		req.URL.Path = "/users/sorted/" + val.colum + "/" + val.trend
 		s.ServeHTTP(rec, req)
 		assert.Equal(http.StatusNotFound, rec.Code)
 		var users []model.User
@@ -168,12 +178,17 @@ func TestSearch_handle(t *testing.T) {
 	assert.NoError(err)
 	err = s.configureRouter()
 	assert.NoError(err)
+	sc := securecookie.New(key, nil)
+	cookieStr, _ := sc.Encode(sessionName, map[interface{}]interface{}{"authenticated": true})
+	req, _ := http.NewRequest(http.MethodGet, "", nil)
+	req.Header.Set("Cookie", fmt.Sprintf("%s=%s", sessionName, cookieStr))
 	test_case_done := []struct {
 		name string
 	}{{name: "Margie Ellison"}, {name: "Gordon Felix"}}
 	for _, val := range test_case_done {
 		rec := httptest.NewRecorder()
-		req, _ := http.NewRequest(http.MethodGet, "/users/search/"+val.name, nil)
+		req.URL.Path = "/users/search/" + val.name
+
 		s.ServeHTTP(rec, req)
 		assert.Equal(http.StatusOK, rec.Code)
 		var users []model.User
@@ -192,7 +207,7 @@ func TestSearch_handle(t *testing.T) {
 	}{{name: "Test1"}, {name: "Test2"}}
 	for _, val := range test_case_bad {
 		rec := httptest.NewRecorder()
-		req, _ := http.NewRequest(http.MethodGet, "/users/search/"+val.name, nil)
+		req.URL.Path = "/users/search/" + val.name
 		s.ServeHTTP(rec, req)
 		assert.Equal(http.StatusOK, rec.Code)
 		var users []model.User
@@ -202,13 +217,15 @@ func TestSearch_handle(t *testing.T) {
 
 	}
 }
-func TestXxx(t *testing.T) {
+func TestAuch(t *testing.T) {
 	assert := assert.New(t)
-	matched, err := regexp.Match("age|name|country", []byte("age"))
-	mux.NewRouter().NewRoute().GetPathRegexp()
-	if err != nil {
-		assert.NoError(err)
-	}
+	s := New(&Config{DatabaseURL: "../../db_test.db"})
+	err := s.configureDB()
+	assert.NoError(err)
+	err = s.configureRouter()
+	assert.NoError(err)
+	rec := httptest.NewRecorder()
+	req, _ := http.NewRequest(http.MethodGet, "/login", nil)
+	s.ServeHTTP(rec, req)
 
-	assert.Equal(matched, true)
 }
