@@ -12,12 +12,39 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func TestCache(t *testing.T) {
+	assert := assert.New(t)
+	s := New(&Config{DatabaseURL: "../../db_test.db"})
+	err := s.configureDB()
+	assert.NoError(err)
+	s.configureRouter()
+	err = s.configureCache()
+	assert.NoError(err)
+
+	sc := securecookie.New(key, nil)
+	cookieStr, _ := sc.Encode(sessionName, map[interface{}]interface{}{"authenticated": true})
+
+	req, _ := http.NewRequest(http.MethodGet, "/users/all", nil)
+	req.Header.Set("Cookie", fmt.Sprintf("%s=%s", sessionName, cookieStr))
+	for i := 0; i < 10; i++ {
+		rec := httptest.NewRecorder()
+		s.ServeHTTP(rec, req)
+		assert.NotEqual(http.StatusBadRequest, rec.Code)
+		var users []model.User
+		err = json.Unmarshal(rec.Body.Bytes(), &users)
+		assert.NotEqual(len(users), 0)
+		assert.NoError(err)
+	}
+
+}
 func TestUser_handle(t *testing.T) {
 	assert := assert.New(t)
 	s := New(&Config{DatabaseURL: "../../db_test.db"})
 	err := s.configureDB()
 	assert.NoError(err)
 	s.configureRouter()
+	err = s.configureCache()
+	assert.NoError(err)
 
 	sc := securecookie.New(key, nil)
 	cookieStr, _ := sc.Encode(sessionName, map[interface{}]interface{}{"authenticated": true})
@@ -46,7 +73,10 @@ func TestFilter_handle(t *testing.T) {
 	s := New(&Config{DatabaseURL: "../../db_test.db"})
 	err := s.configureDB()
 	assert.NoError(err)
-	s.configureRouter()
+	err = s.configureRouter()
+	assert.NoError(err)
+	err = s.configureCache()
+	assert.NoError(err)
 	sc := securecookie.New(key, nil)
 	cookieStr, _ := sc.Encode(sessionName, map[interface{}]interface{}{"authenticated": true})
 	req, _ := http.NewRequest(http.MethodGet, "", nil)
@@ -119,6 +149,8 @@ func TestSorted_handle(t *testing.T) {
 	assert.NoError(err)
 	err = s.configureRouter()
 	assert.NoError(err)
+	err = s.configureCache()
+	assert.NoError(err)
 	sc := securecookie.New(key, nil)
 	cookieStr, _ := sc.Encode(sessionName, map[interface{}]interface{}{"authenticated": true})
 	req, _ := http.NewRequest(http.MethodGet, "", nil)
@@ -176,6 +208,8 @@ func TestSearch_handle(t *testing.T) {
 	s := New(&Config{DatabaseURL: "../../db_test.db"})
 	err := s.configureDB()
 	assert.NoError(err)
+	err = s.configureCache()
+	assert.NoError(err)
 	err = s.configureRouter()
 	assert.NoError(err)
 	sc := securecookie.New(key, nil)
@@ -222,10 +256,55 @@ func TestAuch(t *testing.T) {
 	s := New(&Config{DatabaseURL: "../../db_test.db"})
 	err := s.configureDB()
 	assert.NoError(err)
+	err = s.configureCache()
+	assert.NoError(err)
 	err = s.configureRouter()
 	assert.NoError(err)
 	rec := httptest.NewRecorder()
 	req, _ := http.NewRequest(http.MethodGet, "/login", nil)
 	s.ServeHTTP(rec, req)
 
+}
+
+func BenchmarkUser_handle(b *testing.B) {
+	s := New(&Config{DatabaseURL: "../../db_test.db"})
+	s.configureDB()
+	s.configureRouter()
+	s.configureCache()
+	sc := securecookie.New(key, nil)
+	cookieStr, _ := sc.Encode(sessionName, map[interface{}]interface{}{"authenticated": true})
+
+	rec := httptest.NewRecorder()
+	req, _ := http.NewRequest(http.MethodGet, "/users/all", nil)
+	req.Header.Set("Cookie", fmt.Sprintf("%s=%s", sessionName, cookieStr))
+
+	for i := 0; i < b.N; i++ {
+		s.ServeHTTP(rec, req)
+	}
+}
+
+func BenchmarkFilter_handle(b *testing.B) {
+	s := New(&Config{DatabaseURL: "../../db_test.db"})
+	s.configureDB()
+	s.configureRouter()
+	s.configureCache()
+	sc := securecookie.New(key, nil)
+	cookieStr, _ := sc.Encode(sessionName, map[interface{}]interface{}{"authenticated": true})
+
+	rec := httptest.NewRecorder()
+	req, _ := http.NewRequest(http.MethodGet, "", nil)
+	req.Header.Set("Cookie", fmt.Sprintf("%s=%s", sessionName, cookieStr))
+	test_case_done := []struct {
+		colum string
+		value string
+	}{{colum: "name", value: "Margie Ellison"}, {colum: "name", value: "Gordon Felix"}, {colum: "name", value: "Lillie Perkins"},
+		{colum: "country", value: "US"}, {colum: "country", value: "UK"}, {colum: "country", value: "AT"},
+		{colum: "age", value: "20"}, {colum: "age", value: "18"}, {colum: "age", value: "45"}}
+	for i := 0; i < b.N; i++ {
+		for _, val := range test_case_done {
+			req.URL.Path = "/users/filter/" + val.colum + "/" + val.value
+			s.ServeHTTP(rec, req)
+		}
+
+	}
 }

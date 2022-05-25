@@ -9,6 +9,7 @@ require github.com/gorilla/securecookie v1.1.1 // indirect
 require (
 	github.com/BurntSushi/toml v1.1.0 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
+	github.com/garyburd/redigo v1.6.3
 	github.com/go-sql-driver/mysql v1.6.0
 	github.com/gorilla/mux v1.8.0 // indirect
 	github.com/gorilla/sessions v1.2.1
