@@ -14,7 +14,7 @@ import (
 
 func TestCache(t *testing.T) {
 	assert := assert.New(t)
-	s := New(&Config{DatabaseURL: "../../db_test.db"})
+	s := New(&Config{DatabaseURL: "../../db_test.db", CacheURL: "127.0.0.1:6379"})
 	err := s.configureDB()
 	assert.NoError(err)
 	s.configureRouter()
@@ -39,7 +39,7 @@ func TestCache(t *testing.T) {
 }
 func TestUser_handle(t *testing.T) {
 	assert := assert.New(t)
-	s := New(&Config{DatabaseURL: "../../db_test.db"})
+	s := New(&Config{DatabaseURL: "../../db_test.db", CacheURL: "127.0.0.1:6379"})
 	err := s.configureDB()
 	assert.NoError(err)
 	s.configureRouter()
@@ -70,7 +70,7 @@ func TestUser_handle(t *testing.T) {
 }
 func TestFilter_handle(t *testing.T) {
 	assert := assert.New(t)
-	s := New(&Config{DatabaseURL: "../../db_test.db"})
+	s := New(&Config{DatabaseURL: "../../db_test.db", CacheURL: "127.0.0.1:6379"})
 	err := s.configureDB()
 	assert.NoError(err)
 	err = s.configureRouter()
@@ -144,7 +144,7 @@ func TestFilter_handle(t *testing.T) {
 }
 func TestSorted_handle(t *testing.T) {
 	assert := assert.New(t)
-	s := New(&Config{DatabaseURL: "../../db_test.db"})
+	s := New(&Config{DatabaseURL: "../../db_test.db", CacheURL: "127.0.0.1:6379"})
 	err := s.configureDB()
 	assert.NoError(err)
 	err = s.configureRouter()
@@ -205,7 +205,7 @@ func TestSorted_handle(t *testing.T) {
 }
 func TestSearch_handle(t *testing.T) {
 	assert := assert.New(t)
-	s := New(&Config{DatabaseURL: "../../db_test.db"})
+	s := New(&Config{DatabaseURL: "../../db_test.db", CacheURL: "127.0.0.1:6379"})
 	err := s.configureDB()
 	assert.NoError(err)
 	err = s.configureCache()
@@ -253,7 +253,7 @@ func TestSearch_handle(t *testing.T) {
 }
 func TestAuch(t *testing.T) {
 	assert := assert.New(t)
-	s := New(&Config{DatabaseURL: "../../db_test.db"})
+	s := New(&Config{DatabaseURL: "../../db_test.db", CacheURL: "127.0.0.1:6379"})
 	err := s.configureDB()
 	assert.NoError(err)
 	err = s.configureCache()
@@ -267,7 +267,7 @@ func TestAuch(t *testing.T) {
 }
 
 func BenchmarkUser_handle(b *testing.B) {
-	s := New(&Config{DatabaseURL: "../../db_test.db"})
+	s := New(&Config{DatabaseURL: "../../db_test.db", CacheURL: "127.0.0.1:6379"})
 	s.configureDB()
 	s.configureRouter()
 	s.configureCache()
@@ -284,7 +284,7 @@ func BenchmarkUser_handle(b *testing.B) {
 }
 
 func BenchmarkFilter_handle(b *testing.B) {
-	s := New(&Config{DatabaseURL: "../../db_test.db"})
+	s := New(&Config{DatabaseURL: "../../db_test.db", CacheURL: "127.0.0.1:6379"})
 	s.configureDB()
 	s.configureRouter()
 	s.configureCache()

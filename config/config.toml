@@ -1,2 +1,4 @@
 bind_addr = ":8181"
 database_url = "../../db_test.db"
+msg_url = "amqp://127.0.0.1/"
+cache_url = "127.0.0.1:6379"

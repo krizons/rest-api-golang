@@ -12,6 +12,8 @@ import (
 	mycache "github.com/krizons/rest-api-golang/internal/cache/red"
 	"github.com/krizons/rest-api-golang/internal/db"
 	sql_user "github.com/krizons/rest-api-golang/internal/db/sqllite"
+	"github.com/krizons/rest-api-golang/internal/messages"
+	msg "github.com/krizons/rest-api-golang/internal/messages/rabbit"
 	"github.com/krizons/rest-api-golang/internal/model"
 )
 
@@ -23,6 +25,7 @@ type server struct {
 	db      db.MyDb
 	cache   cache.Cache
 	sesison sessions.Store
+	msg     messages.Messages
 }
 
 var key = []byte("my_secret")
@@ -74,7 +77,18 @@ func (s *server) Start() error {
 	if err := s.configureCache(); err != nil {
 		return err
 	}
+	if err := s.configureMSG(); err != nil {
+		return err
+	}
 	return http.ListenAndServe(s.config.BindAddr, s.router)
+}
+func (s *server) configureMSG() error {
+	msg, err := msg.New(s.config.MsgURL, map[string]struct{}{"login": {}})
+	if err != nil {
+		return err
+	}
+	s.msg = msg
+	return nil
 }
 func (s *server) configureDB() error {
 	db, error := sql_user.New(s.config.DatabaseURL)
@@ -86,7 +100,7 @@ func (s *server) configureDB() error {
 	return nil
 }
 func (s *server) configureCache() error {
-	my_cache, error := mycache.New()
+	my_cache, error := mycache.New(s.config.CacheURL)
 	if error != nil {
 		return error
 
@@ -121,9 +135,18 @@ func (s *server) authenticate(next http.Handler) http.Handler {
 	})
 }
 func (s *server) Login(w http.ResponseWriter, r *http.Request) {
+	type Login struct {
+		Time       int64
+		RemoteAddr string
+	}
 	session, _ := s.sesison.Get(r, sessionName)
 	session.Values["authenticated"] = true
 	session.Save(r, w)
+	data, err := json.Marshal(Login{Time: time.Now().Unix(), RemoteAddr: r.RemoteAddr})
+	if err == nil && s.msg != nil {
+		s.msg.Put("login", data)
+	}
+
 	w.Write([]byte("login ok"))
 }
 func (s *server) userHandler() http.HandlerFunc {
@@ -266,4 +289,5 @@ func (s *server) SearchHandler() http.HandlerFunc {
 }
 func (s *server) Close() {
 	s.cache.Close()
+	s.msg.Close()
 }

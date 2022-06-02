@@ -16,6 +16,7 @@ type Cache struct {
 	defaultExpiration time.Duration
 	cleanupInterval   time.Duration
 	items             map[string]Item
+	close             chan bool
 }
 
 func New(defaultExpiration, cleanupInterval time.Duration) (*Cache, error) {
@@ -26,6 +27,7 @@ func New(defaultExpiration, cleanupInterval time.Duration) (*Cache, error) {
 		items:             items,
 		defaultExpiration: defaultExpiration,
 		cleanupInterval:   cleanupInterval,
+		close:             make(chan bool),
 	}
 
 	if cleanupInterval > 0 {
@@ -96,15 +98,20 @@ func (c *Cache) Delete(key string) error {
 func (c *Cache) GC() {
 
 	for {
-		<-time.After(c.cleanupInterval)
-		if c.items == nil {
+		select {
+
+		case <-c.close:
 			return
+		default:
+			<-time.After(c.cleanupInterval)
+
+			if keys := c.expiredKeys(); len(keys) != 0 {
+				c.clearItems(keys)
+
+			}
+
 		}
 
-		if keys := c.expiredKeys(); len(keys) != 0 {
-			c.clearItems(keys)
-
-		}
 	}
 }
 
@@ -134,6 +141,7 @@ func (c *Cache) clearItems(keys []string) {
 	}
 }
 func (c *Cache) Close() {
+	c.close <- true
 	for k := range c.items {
 		delete(c.items, k)
 	}

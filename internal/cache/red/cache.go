@@ -16,9 +16,9 @@ type Cache struct {
 	redis redis.Conn
 }
 
-func New() (*Cache, error) {
+func New(url string) (*Cache, error) {
 
-	c, err := redis.Dial("tcp", "127.0.0.1:6379")
+	c, err := redis.Dial("tcp", url)
 	if err != nil {
 		fmt.Println("Connect to redis error", err)
 		return nil, err
@@ -44,12 +44,6 @@ func (c *Cache) Get(key string) (interface{}, bool) {
 		return val, false
 	}
 	return val, true
-
-}
-func (c *Cache) Delete(key string) error {
-	return nil
-}
-func (c *Cache) GC() {
 
 }
 func (c *Cache) Close() {
