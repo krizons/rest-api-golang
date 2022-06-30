@@ -6,4 +6,6 @@ Demonstatchion rest-api server with use multi database
 1.sqlite  
 2.mysql  
 3.gorm  
+4.cache
+6.messages broker 
 4.gorilla/mux and others  
