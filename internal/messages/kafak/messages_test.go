@@ -1,6 +1,7 @@
 package kafak
 
 import (
+	"context"
 	"encoding/json"
 	"testing"
 
@@ -23,5 +24,7 @@ func TestSendMessage(t *testing.T) {
 		assert.NoError(err)
 		assert.Equal(data, data_get)
 	}
-	messag.Close()
+	ctx, cancel := context.WithCancel(context.Background())
+	cancel()
+	messag.Close(ctx)
 }

@@ -1,6 +1,7 @@
 package mycache
 
 import (
+	"context"
 	"errors"
 	"sync"
 	"time"
@@ -140,10 +141,11 @@ func (c *Cache) clearItems(keys []string) {
 		delete(c.items, k)
 	}
 }
-func (c *Cache) Close() {
+func (c *Cache) Close(ctx context.Context) error {
+	<-ctx.Done()
 	c.close <- true
 	for k := range c.items {
 		delete(c.items, k)
 	}
-
+	return nil
 }

@@ -1,6 +1,7 @@
 package rabbit
 
 import (
+	"context"
 	"errors"
 
 	"github.com/streadway/amqp"
@@ -39,9 +40,10 @@ func New(amqpServerURL string, queues map[string]struct{}) (*Messages, error) {
 
 	return &Messages{connectRabbitMQ: connectRabbitMQ, channelRabbitMQ: channelRabbitMQ, queues: queues}, nil
 }
-func (m *Messages) Close() {
+func (m *Messages) Close(ctx context.Context) error {
+
 	m.channelRabbitMQ.Close()
-	m.connectRabbitMQ.Close()
+	return m.connectRabbitMQ.Close()
 }
 func (m *Messages) Put(queue string, data []byte) error {
 	_, ok := m.queues[queue]

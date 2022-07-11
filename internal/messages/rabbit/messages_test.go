@@ -1,6 +1,7 @@
 package rabbit
 
 import (
+	"context"
 	"encoding/json"
 	"testing"
 
@@ -18,6 +19,7 @@ func TestSendMessage(t *testing.T) {
 		err = messag.Put("test", data)
 		assert.NoError(err)
 	}
-
-	messag.Close()
+	ctx, cancel := context.WithCancel(context.Background())
+	cancel()
+	messag.Close(ctx)
 }

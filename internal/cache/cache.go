@@ -1,9 +1,12 @@
 package cache
 
-import "time"
+import (
+	"context"
+	"time"
+)
 
 type Cache interface {
 	Set(key string, value interface{}, duration time.Duration)
 	Get(key string) (interface{}, bool)
-	Close()
+	Close(ctx context.Context) error
 }

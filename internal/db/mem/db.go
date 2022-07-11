@@ -1,6 +1,8 @@
 package my_mem
 
 import (
+	"context"
+
 	"github.com/krizons/rest-api-golang/internal/db"
 	"github.com/krizons/rest-api-golang/internal/model"
 )
@@ -15,4 +17,7 @@ func New() (*MyDb, error) {
 }
 func (my *MyDb) User() db.UserDB {
 	return my.user_db
+}
+func (my *MyDb) Close(ctx context.Context) error {
+	return nil
 }

@@ -1,6 +1,7 @@
 package rediscache
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -46,6 +47,7 @@ func (c *Cache) Get(key string) (interface{}, bool) {
 	return val, true
 
 }
-func (c *Cache) Close() {
-	c.redis.Close()
+func (c *Cache) Close(ctx context.Context) error {
+
+	return c.redis.Close()
 }

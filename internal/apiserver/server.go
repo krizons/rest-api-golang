@@ -1,7 +1,10 @@
 package apiserver
 
 import (
+	"context"
 	"encoding/json"
+	"fmt"
+	"log"
 	"net/http"
 	"strconv"
 	"time"
@@ -10,6 +13,7 @@ import (
 	"github.com/gorilla/sessions"
 	"github.com/krizons/rest-api-golang/internal/cache"
 	mycache "github.com/krizons/rest-api-golang/internal/cache/red"
+	"github.com/krizons/rest-api-golang/internal/closer"
 	"github.com/krizons/rest-api-golang/internal/db"
 	sql_user "github.com/krizons/rest-api-golang/internal/db/sqllite"
 	"github.com/krizons/rest-api-golang/internal/messages"
@@ -18,6 +22,7 @@ import (
 )
 
 var sessionName = "test"
+var shutdownTimeout = 15 * time.Second
 
 type server struct {
 	config  *Config
@@ -69,7 +74,7 @@ func (s *server) configureRouter() error {
 
 	return nil
 }
-func (s *server) Start() error {
+func (s *server) Start(ctx context.Context) error {
 	s.configureRouter()
 	if err := s.configureDB(); err != nil {
 		return err
@@ -80,7 +85,32 @@ func (s *server) Start() error {
 	if err := s.configureMSG(); err != nil {
 		return err
 	}
-	return http.ListenAndServe(s.config.BindAddr, s.router)
+	srv := &http.Server{
+		Addr:    s.config.BindAddr,
+		Handler: s.router,
+	}
+	//srv.Handler = s.router
+	c := &closer.Closer{}
+	c.Add(srv.Shutdown)
+	c.Add(s.cache.Close)
+	c.Add(s.db.Close)
+	c.Add(s.msg.Close)
+	go func() {
+		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			log.Fatalf("listen and serve: %v", err)
+		}
+	}()
+	log.Printf("listening on %s", s.config.BindAddr)
+	<-ctx.Done()
+	log.Println("shutting down server gracefully")
+	shutdownCtx, cancel := context.WithTimeout(context.Background(), shutdownTimeout)
+	defer cancel()
+
+	if err := c.Close(shutdownCtx); err != nil {
+		return fmt.Errorf("closer: %v", err)
+	}
+
+	return nil
 }
 func (s *server) configureMSG() error {
 	msg, err := msg.New(s.config.MsgURL, map[string]struct{}{"login": {}})
@@ -287,7 +317,8 @@ func (s *server) SearchHandler() http.HandlerFunc {
 		w.Write(data)
 	}
 }
-func (s *server) Close() {
+
+/*func (s *server) Close() {
 	s.cache.Close()
 	s.msg.Close()
-}
+}*/

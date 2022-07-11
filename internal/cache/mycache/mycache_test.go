@@ -1,6 +1,7 @@
 package mycache
 
 import (
+	"context"
 	"testing"
 	"time"
 
@@ -20,5 +21,7 @@ func TestPutAndGet(t *testing.T) {
 	time.Sleep(time.Second * 3)
 	_, ok = cache.Get("test")
 	assert.Equal(ok, false)
-	cache.Close()
+	ctx, cancel := context.WithCancel(context.Background())
+	cancel()
+	cache.Close(ctx)
 }

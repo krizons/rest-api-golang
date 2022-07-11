@@ -22,8 +22,9 @@ func New(brokerAddress string, topic string) (*Messages, error) {
 
 	return &Messages{w: w, topic: topic, brokerAddress: brokerAddress}, nil
 }
-func (m *Messages) Close() {
-	m.w.Close()
+func (m *Messages) Close(ctx context.Context) error {
+	<-ctx.Done()
+	return m.w.Close()
 }
 func (m *Messages) Put(topic string, data []byte) error {
 	if topic == m.topic {

@@ -1,6 +1,7 @@
 package rediscache
 
 import (
+	"context"
 	"testing"
 
 	"github.com/garyburd/redigo/redis"
@@ -19,5 +20,7 @@ func TestPutAndGet(t *testing.T) {
 		assert.NoError(err)
 		assert.Equal(data, "val")
 	}
-	cache.Close()
+	ctx, cancel := context.WithCancel(context.Background())
+	cancel()
+	cache.Close(ctx)
 }
