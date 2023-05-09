@@ -2,7 +2,7 @@
 ____
 Demonstatchion rest-api server with use multi database  
 
-**Used texnologies:**  
+**Used technologies:**  
 1.sqlite  
 2.mysql  
 3.gorm  
